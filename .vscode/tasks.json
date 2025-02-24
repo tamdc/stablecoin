@@ -1,0 +1,34 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  // "command": "headers ${input:header} | tee /dev/tty | clip.exe",
+
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate Header",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "\"/root/.cargo/bin/headers ${input:header} | tee /dev/tty | clip.exe\""
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "header",
+      "type": "promptString",
+      "description": "Header"
+    }
+  ]
+}
