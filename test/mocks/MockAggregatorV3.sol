@@ -27,12 +27,7 @@ contract MockAggregatorV3 {
         getStartedAt[latestRound] = block.timestamp;
     }
 
-    function updateRoundData(
-        uint80 _roundId,
-        int256 _answer,
-        uint256 _timestamp,
-        uint256 _startedAt
-    ) public {
+    function updateRoundData(uint80 _roundId, int256 _answer, uint256 _timestamp, uint256 _startedAt) public {
         latestRound = _roundId;
         latestAnswer = _answer;
         latestTimestamp = _timestamp;
@@ -41,38 +36,18 @@ contract MockAggregatorV3 {
         getStartedAt[latestRound] = _startedAt;
     }
 
-    function getRoundData(
-        uint80 _roundId
-    )
+    function getRoundData(uint80 _roundId)
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 timestamp,
-            uint80 answerInRoundId
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 timestamp, uint80 answerInRoundId)
     {
-        return (
-            _roundId,
-            getAnswer[_roundId],
-            getStartedAt[_roundId],
-            getTimestamp[_roundId],
-            _roundId
-        );
+        return (_roundId, getAnswer[_roundId], getStartedAt[_roundId], getTimestamp[_roundId], _roundId);
     }
 
     function latestRoundData()
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 timestamp,
-            uint80 answerInRoundId
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 timestamp, uint80 answerInRoundId)
     {
         return (
             uint80(latestRound),
@@ -83,7 +58,7 @@ contract MockAggregatorV3 {
         );
     }
 
-    function description() external pure returns(string memory) {
+    function description() external pure returns (string memory) {
         return "v0.8/tests/MockAggregatorV3";
     }
 }
