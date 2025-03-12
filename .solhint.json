@@ -1,0 +1,10 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "max-line-length": ["off", 120],
+    "immutable-vars-naming": "off",
+    "var-name-mixedcase": "off",
+    "compiler-version": "off",
+    "func-visibility": ["warn", { "ignoreConstructors": true }]
+  }
+}

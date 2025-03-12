@@ -72,7 +72,7 @@ contract DSCEngine is ReentrancyGuard {
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant LIQUIDATION_BONUS = 10;
     uint256 private constant PRECISION = 1e18;
-    uint256 private constant ADDITION_FEED_PRECISION = 10e8;
+    uint256 private constant ADDITION_FEED_PRECISION = 1e10;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18; // If Position has health factor smaller than this value, it will me liquidated
 
     mapping(address token => address priceFeed) private s_priceFeeds;
@@ -243,11 +243,9 @@ contract DSCEngine is ReentrancyGuard {
         if (endingHealthFactor <= startingHealthFactor) {
             revert DSCEngine__HealthFactorNotImproved();
         }
-        
+
         revertIfHealthFactorBroken(msg.sender);
     }
-
-    function getHealthFactor() external view {}
 
     /*//////////////////////////////////////////////////////////////
               PRIVATE AND INTERNAL VIEW AND PURE FUNCTIONS
@@ -361,4 +359,29 @@ contract DSCEngine is ReentrancyGuard {
 
         return (debtInUsd * PRECISION) / (uint256(price) * ADDITION_FEED_PRECISION);
     }
+    
+    function getMinHealthFactor() public pure returns(uint256) {
+        return MIN_HEALTH_FACTOR;
+    }
+    
+    function getLiquidationThreshold() public pure returns(uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
+    
+    function getLiquidationPrecision() public pure returns(uint256) {
+        return LIQUIDATION_PRECISION;
+    }
+    
+    function getLiquidationBonus() public pure returns(uint256) {
+        return LIQUIDATION_BONUS;
+    }
+    
+    function getPrecision() public pure returns(uint256) {
+        return PRECISION;
+    }
+    
+    function getAdditionFeedPrecision() public pure returns(uint256) {
+        return ADDITION_FEED_PRECISION;
+    }
 }
+

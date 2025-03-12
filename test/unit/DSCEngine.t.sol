@@ -14,39 +14,64 @@ contract TestDSCEngine is Test {
     DeployDSC deployer;
     HelperConfig config;
     address weth;
+    address wbtc;
     address wethPriceFeed;
-    address public user = makeAddr('user');
-    uint256 public constant AMOUNT_COLLATERAL = 20 ether;
+    address wbtcPriceFeed;
+    address public user = makeAddr("user");
+    uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
-    
+    uint256 public constant LIQUIDATION_THRESHOLD = 50; // The maximum your DSC you can mint is 50% your total collatral
+    uint256 public constant LIQUIDATION_PRECISION = 100;
+    uint256 public constant LIQUIDATION_BONUS = 10;
+    uint256 public constant PRECISION = 1e18;
+    uint256 public constant ADDITION_FEED_PRECISION = 1e10;
+    uint256 public constant MIN_HEALTH_FACTOR = 1e18;
 
     function setUp() external {
         deployer = new DeployDSC();
         (dsc, dsce, config) = deployer.run();
-        (weth,, wethPriceFeed,,) = config.activeNetworkConfig();
+        (weth, wbtc, wethPriceFeed, wbtcPriceFeed,) = config.activeNetworkConfig();
+
+        vm.deal(user, STARTING_ERC20_BALANCE);
     }
 
     ///////////////////////
     // Constructor Tests //
     ///////////////////////
     address[] public tokenAddresses;
-    address[] public feedAddresses;
+    address[] public priceFeedAddresses;
 
-    function testRevertsIfTokenLengthDoesntMatchPriceFeeds() public {}
+    function testRevertsIfTokenLengthDoesntMatchPriceFeeds() public {
+        tokenAddresses = [weth, wbtc];
+        priceFeedAddresses = [wethPriceFeed];
+
+        vm.expectRevert(DSCEngine.DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength.selector);
+        new DSCEngine(tokenAddresses, priceFeedAddresses, address(dsc));
+    }
 
     //////////////////
     // Price Tests //
     //////////////////
 
-    function testGetTokenAmountFromUsd() public {}
+    function testGetTokenAmountFromUsd() public view {
+        uint256 usd = 8_000 * PRECISION;
+        uint256 expecedEthAmount = 4 * PRECISION;
+        uint256 expectedBtcAmount = 1e17;
 
-    function testGetUsdValue() public {
+        uint256 ethAmount = dsce.tokenAmountFromUsdValue(weth, usd);
+        uint256 btcAmount = dsce.tokenAmountFromUsdValue(wbtc, usd);
+
+        assertEq(ethAmount, expecedEthAmount);
+        assertEq(btcAmount, expectedBtcAmount);
+    }
+
+    function testGetUsdValue() public view {
         // 15e18 * 2,000/ETH = 30,000e18
         uint256 amount = 15e18;
         uint256 expectedResult = 30_000e18;
         uint256 result = dsce.getValueInUsd(weth, amount);
-        
-        assertEq(expectedResult, result);
+
+        assertEq(result, expectedResult);
     }
 
     ///////////////////////////////////////
@@ -54,7 +79,11 @@ contract TestDSCEngine is Test {
     ///////////////////////////////////////
 
     // this test needs it's own setup
-    function testRevertsIfTransferFromFails() public {}
+    function testRevertsIfTransferFromFails() public {
+        vm.prank(user);
+        vm.expectRevert();
+        dsce.depositeCollateral(weth, STARTING_ERC20_BALANCE);
+    }
 
     function testRevertsIfCollateralZero() public {
         vm.prank(user);
@@ -162,9 +191,15 @@ contract TestDSCEngine is Test {
 
     function testGetCollateralTokens() public {}
 
-    function testGetMinHealthFactor() public {}
+    function testGetMinHealthFactor() public view {
+        uint256 minHealthFactor = dsce.getMinHealthFactor();
+        assertEq(minHealthFactor, MIN_HEALTH_FACTOR);
+    }
 
-    function testGetLiquidationThreshold() public {}
+    function testGetLiquidationThreshold() public view {
+        uint256 liquidationThreshold = dsce.getLiquidationThreshold();
+        assertEq(liquidationThreshold, LIQUIDATION_THRESHOLD);
+    }
 
     function testGetAccountCollateralValueFromInformation() public {}
 
@@ -174,5 +209,23 @@ contract TestDSCEngine is Test {
 
     function testGetDsc() public {}
 
-    function testLiquidationPrecision() public {}
+    function testLiquidationPrecision() public view {
+        uint256 liquidationPrecision = dsce.getLiquidationPrecision();
+        assertEq(liquidationPrecision, LIQUIDATION_PRECISION);
+    }
+
+    function testGetLiquidationBonus() public view {
+        uint256 liquidationBonus = dsce.getLiquidationBonus();
+        assertEq(liquidationBonus, LIQUIDATION_BONUS);
+    }
+
+    function testGetPrecision() public view {
+        uint256 precision = dsce.getPrecision();
+        assertEq(precision, PRECISION);
+    }
+
+    function testGetAdditionFeedPrecision() public view {
+        uint256 additionFeedPrecision = dsce.getAdditionFeedPrecision();
+        assertEq(additionFeedPrecision, ADDITION_FEED_PRECISION);
+    }
 }
