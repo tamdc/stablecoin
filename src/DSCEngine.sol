@@ -27,6 +27,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {console2} from "forge-std/console2.sol"; // Import Foundry's console2
 
 /**
  * @title DSCEngine
@@ -76,7 +77,7 @@ contract DSCEngine is ReentrancyGuard {
     uint256 private constant MIN_HEALTH_FACTOR = 1e18; // If Position has health factor smaller than this value, it will me liquidated
 
     mapping(address token => address priceFeed) private s_priceFeeds;
-    mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
+    mapping(address user => mapping(address token => uint256 amount)) public s_collateralDeposited;
     mapping(address user => uint256 amount) private s_DSCMinted;
 
     address[] private s_collateralTokens;
@@ -266,7 +267,7 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     /**
-     * @notice Calculates the health factor of a user's account
+     * @notice Calculates the health factor of a user's` account
      * @param totalDscMinted The amount user wanna mint
      * @param collateralInUsd Collateral value in USD
      * @return healthFactor The health factor from these 2 params
@@ -341,7 +342,7 @@ contract DSCEngine is ReentrancyGuard {
     function getAccountCollateral(address user) public view returns (uint256 totalCollateral) {
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
-            uint256 amount = s_collateralDeposited[token][user];
+            uint256 amount = s_collateralDeposited[user][token];
             totalCollateral += getValueInUsd(token, amount);
         }
     }
@@ -359,29 +360,36 @@ contract DSCEngine is ReentrancyGuard {
 
         return (debtInUsd * PRECISION) / (uint256(price) * ADDITION_FEED_PRECISION);
     }
-    
-    function getMinHealthFactor() public pure returns(uint256) {
+
+    function getMinHealthFactor() public pure returns (uint256) {
         return MIN_HEALTH_FACTOR;
     }
-    
-    function getLiquidationThreshold() public pure returns(uint256) {
+
+    function getLiquidationThreshold() public pure returns (uint256) {
         return LIQUIDATION_THRESHOLD;
     }
-    
-    function getLiquidationPrecision() public pure returns(uint256) {
+
+    function getLiquidationPrecision() public pure returns (uint256) {
         return LIQUIDATION_PRECISION;
     }
-    
-    function getLiquidationBonus() public pure returns(uint256) {
+
+    function getLiquidationBonus() public pure returns (uint256) {
         return LIQUIDATION_BONUS;
     }
-    
-    function getPrecision() public pure returns(uint256) {
+
+    function getPrecision() public pure returns (uint256) {
         return PRECISION;
     }
-    
-    function getAdditionFeedPrecision() public pure returns(uint256) {
+
+    function getAdditionFeedPrecision() public pure returns (uint256) {
         return ADDITION_FEED_PRECISION;
     }
-}
 
+    function checkCollateral(address token, address user) public view returns (uint256) {
+        return s_collateralDeposited[user][token];
+    }
+
+    function getHealthFactor(address user) public view returns (uint256) {
+        return _getHealthFactor(user);
+    }
+}

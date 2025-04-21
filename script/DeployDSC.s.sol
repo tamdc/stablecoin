@@ -20,8 +20,8 @@ contract DeployDSC is Script {
         vm.startBroadcast(deployKey);
         DecentralizedStableCoin dsc = new DecentralizedStableCoin();
         DSCEngine dscEngine = new DSCEngine(tokenaddresses, priceFeeds, address(dsc));
+        dsc.transferOwnership(address(dscEngine));
         vm.stopBroadcast();
         return (dsc, dscEngine, config);
     }
 }
-    
