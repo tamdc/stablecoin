@@ -26,23 +26,18 @@ contract InvariantTest is StdInvariant, Test {
     function setUp() external {
         deployer = new DeployDSC();
         (dsc, dsce, config) = deployer.run();
-        (weth, wbtc, wethPriceFeed, wbtcPriceFeed,) = config.activeNetworkConfig();
+        (weth, wbtc,,,) = config.activeNetworkConfig();
         handler = new DSCEngineHandler(dsc, dsce, weth, wbtc);
         targetContract(address(handler));
-        invariantCallCount = 0;
     }
 
-    function invariant_protocolMustHaveMoreValueThanTotalSupply() public {
-        invariantCallCount++;
+    function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
         uint256 totalSupply = dsc.totalSupply();
         uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dsce));
         uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
 
         uint256 totalWethValue = dsce.getValueInUsd(weth, totalWethDeposited);
         uint256 totalWbtcValue = dsce.getValueInUsd(wbtc, totalWbtcDeposited);
-        console2.log("totalWethValue", handler.toE18(totalWethValue));
-        console2.log("totalWbtcValue", handler.toE18(totalWbtcValue));
-        console2.log("totalSupply", handler.toE18(totalSupply));
 
         assert(totalWethValue + totalWbtcValue >= totalSupply);
     }
